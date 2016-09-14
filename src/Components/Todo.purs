@@ -45,7 +45,7 @@ init :: String -> Int -> Todo
 init description id = { id: id, description: description, completed: false, edits: Nothing }
 
 update :: ∀ props eff. Update (Maybe Todo) props Action (console :: CONSOLE, dom :: DOM | eff)
-update yield action _ state = case action of
+update yield _ action _ state = case action of
   Focus -> do
     yield $ map (\t -> t { edits = Just t.description })
     case state of

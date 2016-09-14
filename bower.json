@@ -1,11 +1,17 @@
 {
   "name": "purescript-carpenter-todomvc",
+  "author": "Arthur Xavier <arthur.xavierx@gmail.com> (http://arthur-xavier.github.io/)",
   "ignore": [
     "**/.*",
     "node_modules",
     "bower_components",
     "output"
   ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/arthur-xavier/purescript-carpenter-todomvc.git"
+  },
   "dependencies": {
     "purescript-carpenter": "git://github.com/arthur-xavier/purescript-carpenter.git#develop",
     "purescript-strings": "^1.1.0",

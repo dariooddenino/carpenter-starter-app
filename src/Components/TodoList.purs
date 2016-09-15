@@ -12,7 +12,7 @@ import React.DOM as R
 import React.DOM.Props as P
 import Carpenter (Render, Update)
 import Carpenter.Cedar (cedarSpec, CedarClass, watch')
-import Components.Router (routerComponent)
+import Carpenter.Router (Route, match, (:->), router)
 import Data.Array (null, filter, length, mapMaybe, (:))
 import Data.Filter (Filter(..), predicate)
 import Data.Foldable (all)
@@ -27,7 +27,6 @@ data Action
   | ClearCompleted
   | ChangeFilter Filter
   | EditField String
-  | UrlChanged String
 
 type TodoList =
   { field :: String
@@ -41,6 +40,13 @@ todoListComponent = React.createClass $ cedarSpec update render
 
 init :: TodoList
 init = { field: "", tasks: [], uid: 0, filter: All }
+
+routes :: Route -> Filter
+routes = match
+  [ "#/all" :-> All
+  , "#/active" :-> Active
+  , "#/completed" :-> Completed
+  ] All
 
 update :: ∀ props eff. Update TodoList props Action eff
 update yield _ action _ _ = case action of
@@ -66,15 +72,11 @@ update yield _ action _ _ = case action of
   EditField field ->
     yield $ _ { field = field }
 
-  UrlChanged hash -> case hash of
-    "#/active" -> yield $ _ { filter = Active }
-    "#/completed" -> yield $ _ { filter = Completed }
-    _ -> yield $ _ { filter = All }
-
 render :: ∀ props. Render TodoList props Action
 render dispatch props state children =
   R.section [ P.className "todoapp" ]
-    [ renderHeader dispatch props state children
+    [ router (dispatch <<< ChangeFilter) routes
+    , renderHeader dispatch props state children
     , renderList dispatch props state children
     , renderFooter dispatch props state children
     ]
@@ -83,7 +85,6 @@ renderHeader :: ∀ props. Render TodoList props Action
 renderHeader dispatch _ state _ =
   R.header [ P.className "header" ]
     [ R.h1 [] [ R.text "todos" ]
-    , watch' routerComponent (dispatch <<< UrlChanged) ""
     , R.input
       [ P.className "new-todo"
       , P.placeholder "What needs to be done?"

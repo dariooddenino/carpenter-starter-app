@@ -3,9 +3,14 @@ module Storage where
 import Components.Todo (Todo)
 import Data.Generic (class Generic)
 
-data TodoListKey a = TodoListKey
+data Key a
+  = TasksKey
+  | UidKey
 
-derive instance genericTodoListKey :: Generic (TodoListKey a)
+derive instance genericTodoListKey :: Generic (Key a)
 
-todoListKey :: TodoListKey (Array Todo)
-todoListKey = TodoListKey
+tasksKey :: Key (Array Todo)
+tasksKey = TasksKey
+
+uidKey :: Key Int
+uidKey = UidKey

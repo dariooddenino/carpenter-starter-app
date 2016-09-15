@@ -2,40 +2,38 @@ module Components.TodoList
   ( todoListComponent
   , init
   , TodoList
-  , Action
+  , Action(..)
   ) where
 
 import Prelude
-import Components.Todo as Todo
 import React as React
 import React.DOM as R
 import React.DOM.Props as P
 import Carpenter (Render, Update)
 import Carpenter.Cedar (cedarSpec, CedarClass, watch')
 import Carpenter.Router (Route, match, (:->), router)
-import Components.Todo (Todo(Todo))
+import Components.Todo (todoComponent, Todo(Todo))
+import Components.Todo (init) as Todo
 import Control.Monad.Eff.Class (liftEff)
-import DOM (DOM)
-import DOM.WebStorage (STORAGE, setItem, getLocalStorage)
 import Data.Array (null, filter, length, mapMaybe, (:))
 import Data.Filter (Filter(..), predicate)
 import Data.Foldable (all)
 import Data.Maybe (Maybe(..))
 import React (ReactElement)
-import Storage (todoListKey)
 import Unsafe.Coerce (unsafeCoerce)
 
 data Action
   = Insert String
-  | Update Int (Maybe Todo.Todo)
+  | Update Int (Maybe Todo)
   | CheckAll Boolean
   | ClearCompleted
   | ChangeFilter Filter
   | EditField String
+  | Save TodoList
 
 type TodoList =
   { field :: String
-  , tasks :: Array Todo.Todo
+  , tasks :: Array Todo
   , uid :: Int
   , filter :: Filter
   }
@@ -43,8 +41,8 @@ type TodoList =
 todoListComponent :: CedarClass TodoList Action
 todoListComponent = React.createClass $ cedarSpec update render
 
-init :: Array Todo.Todo -> TodoList
-init tasks = { field: "", tasks: tasks, uid: 0, filter: All }
+init :: Array Todo -> Int -> TodoList
+init tasks uid = { field: "", tasks: tasks, uid: uid, filter: All }
 
 routes :: Route -> Filter
 routes = match
@@ -53,42 +51,44 @@ routes = match
   , "#/completed" :-> Completed
   ] All
 
-update :: ∀ props eff. Update TodoList props Action (dom :: DOM, storage :: STORAGE | eff)
-update yield _ action _ _ = case action of
+update :: ∀ props eff. Update TodoList props Action eff
+update yield dispatch action _ _ = case action of
   Insert description -> do
     state <- yield $ \s -> s
       { field = ""
       , tasks = (Todo.init description s.uid) : s.tasks
       , uid = s.uid + 1
       }
-    save state
+    dispatch' (Save state)
+    pure state
 
   Update id taskM -> do
     state <- yield $ \s -> s { tasks = mapMaybe (\(Todo t) -> if t.id == id then taskM else Just (Todo t)) s.tasks }
-    save state
+    dispatch' (Save state)
+    pure state
 
   CheckAll check -> do
     state <- yield $ \s -> s { tasks = map (updateTodo _ { completed = check }) s.tasks }
-    save state
+    dispatch' (Save state)
+    pure state
 
   ClearCompleted -> do
     state <- yield $ \s -> s { tasks = filter (\(Todo t) -> not t.completed) s.tasks }
-    save state
+    dispatch' (Save state)
+    pure state
 
   ChangeFilter filter -> do
-    state <- yield $ _ { filter = filter }
-    save state
+    yield $ _ { filter = filter }
 
   EditField field -> do
-    state <- yield $ _ { field = field }
-    save state
+    yield $ _ { field = field }
+
+  Save _ ->
+    yield id
 
   where
+    dispatch' a = liftEff $ dispatch a
     updateTodo f (Todo t) = Todo (f t)
-    save state = liftEff do
-      localStorage <- getLocalStorage
-      setItem localStorage todoListKey state.tasks
-      pure state
 
 render :: ∀ props. Render TodoList props Action
 render dispatch props state children =
@@ -132,13 +132,14 @@ renderList dispatch _ state _ =
       ] []
     , R.label [ P.htmlFor "toggle-all" ] [ R.text "Mark all as complete" ]
     -- filtered tasks
-    , R.ul [ P.className "todo-list" ]
-        (map (\t -> watch' Todo.todoComponent (dispatch <<< Update (_.id $ getTodo t)) (Just t)) filteredTasks)
+    , R.ul [ P.className "todo-list" ] (map todo filteredTasks)
     ]
   where
+    todo t = watch' todoComponent (dispatch <<< Update (getTodoId t)) (Just t)
+    getTodoId (Todo t) = t.id
+
     allCompleted = all (predicate Completed) state.tasks
     filteredTasks = filter (predicate state.filter) state.tasks
-    getTodo (Todo t) = t
 
 renderFooter :: ∀ props. Render TodoList props Action
 renderFooter dispatch _ state _ =

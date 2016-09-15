@@ -13,7 +13,7 @@
     "url": "git://github.com/arthur-xavier/purescript-carpenter-todomvc.git"
   },
   "dependencies": {
-    "purescript-carpenter": "^2.0.0",
+    "purescript-carpenter": "^2.0.1",
     "purescript-strings": "^1.1.0",
     "purescript-react-dom": "^1.0.0",
     "purescript-carpenter-router": "^0.1.3",

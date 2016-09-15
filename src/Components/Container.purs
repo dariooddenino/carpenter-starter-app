@@ -10,12 +10,12 @@ import Carpenter (Render, spec', Update)
 import Carpenter.Cedar (capture')
 import Components.Task (Task)
 import Components.TodoList (todoListComponent)
+import Components.TodoList.Storage (uidKey, tasksKey)
 import Control.Monad.Eff.Class (liftEff)
 import DOM (DOM)
 import DOM.WebStorage (setItem, getItem, getLocalStorage, STORAGE)
 import Data.Maybe (fromMaybe)
 import React (createClass, ReactClass)
-import Storage (uidKey, tasksKey)
 
 data Action
   = Load

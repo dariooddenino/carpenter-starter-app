@@ -1,6 +1,7 @@
 module Data.Filter where
 
 import Prelude
+import Components.Todo (Todo(Todo))
 
 data Filter = All | Active | Completed
 
@@ -11,7 +12,7 @@ instance showFilter :: Show Filter where
   show Active = "Active"
   show Completed = "Completed"
 
-predicate :: ∀ a. Filter -> ({ completed :: Boolean | a } -> Boolean)
-predicate All = const true
-predicate Active = not <<< _.completed
-predicate Completed = _.completed
+predicate :: Filter -> Todo -> Boolean
+predicate All _ = true
+predicate Active (Todo t) = not t.completed
+predicate Completed (Todo t) = t.completed

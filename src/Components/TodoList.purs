@@ -13,11 +13,16 @@ import React.DOM.Props as P
 import Carpenter (Render, Update)
 import Carpenter.Cedar (cedarSpec, CedarClass, watch')
 import Carpenter.Router (Route, match, (:->), router)
+import Components.Todo (Todo(Todo))
+import Control.Monad.Eff.Class (liftEff)
+import DOM (DOM)
+import DOM.WebStorage (STORAGE, setItem, getLocalStorage)
 import Data.Array (null, filter, length, mapMaybe, (:))
 import Data.Filter (Filter(..), predicate)
 import Data.Foldable (all)
-import Data.Maybe (Maybe(Just))
+import Data.Maybe (Maybe(..))
 import React (ReactElement)
+import Storage (todoListKey)
 import Unsafe.Coerce (unsafeCoerce)
 
 data Action
@@ -38,8 +43,8 @@ type TodoList =
 todoListComponent :: CedarClass TodoList Action
 todoListComponent = React.createClass $ cedarSpec update render
 
-init :: TodoList
-init = { field: "", tasks: [], uid: 0, filter: All }
+init :: Array Todo.Todo -> TodoList
+init tasks = { field: "", tasks: tasks, uid: 0, filter: All }
 
 routes :: Route -> Filter
 routes = match
@@ -48,29 +53,42 @@ routes = match
   , "#/completed" :-> Completed
   ] All
 
-update :: ∀ props eff. Update TodoList props Action eff
+update :: ∀ props eff. Update TodoList props Action (dom :: DOM, storage :: STORAGE | eff)
 update yield _ action _ _ = case action of
-  Insert description ->
-    yield $ \s -> s
+  Insert description -> do
+    state <- yield $ \s -> s
       { field = ""
       , tasks = (Todo.init description s.uid) : s.tasks
       , uid = s.uid + 1
       }
+    save state
 
   Update id taskM -> do
-    yield $ \s -> s { tasks = mapMaybe (\t -> if t.id == id then taskM else Just t) s.tasks }
+    state <- yield $ \s -> s { tasks = mapMaybe (\(Todo t) -> if t.id == id then taskM else Just (Todo t)) s.tasks }
+    save state
 
-  CheckAll check ->
-    yield $ \s -> s { tasks = map (_ { completed = check }) s.tasks }
+  CheckAll check -> do
+    state <- yield $ \s -> s { tasks = map (updateTodo _ { completed = check }) s.tasks }
+    save state
 
-  ClearCompleted ->
-    yield $ \s -> s { tasks = filter (not _.completed) s.tasks }
+  ClearCompleted -> do
+    state <- yield $ \s -> s { tasks = filter (\(Todo t) -> not t.completed) s.tasks }
+    save state
 
-  ChangeFilter filter ->
-    yield $ _ { filter = filter }
+  ChangeFilter filter -> do
+    state <- yield $ _ { filter = filter }
+    save state
 
-  EditField field ->
-    yield $ _ { field = field }
+  EditField field -> do
+    state <- yield $ _ { field = field }
+    save state
+
+  where
+    updateTodo f (Todo t) = Todo (f t)
+    save state = liftEff do
+      localStorage <- getLocalStorage
+      setItem localStorage todoListKey state.tasks
+      pure state
 
 render :: ∀ props. Render TodoList props Action
 render dispatch props state children =
@@ -115,11 +133,12 @@ renderList dispatch _ state _ =
     , R.label [ P.htmlFor "toggle-all" ] [ R.text "Mark all as complete" ]
     -- filtered tasks
     , R.ul [ P.className "todo-list" ]
-        (map (\t -> watch' Todo.todoComponent (dispatch <<< Update t.id) (Just t)) filteredTasks)
+        (map (\t -> watch' Todo.todoComponent (dispatch <<< Update (_.id $ getTodo t)) (Just t)) filteredTasks)
     ]
   where
-    allCompleted = all _.completed state.tasks
+    allCompleted = all (predicate Completed) state.tasks
     filteredTasks = filter (predicate state.filter) state.tasks
+    getTodo (Todo t) = t
 
 renderFooter :: ∀ props. Render TodoList props Action
 renderFooter dispatch _ state _ =

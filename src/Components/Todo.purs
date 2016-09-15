@@ -1,7 +1,7 @@
 module Components.Todo
   ( todoComponent
   , init
-  , Todo
+  , Todo(..)
   , Action
   ) where
 
@@ -9,13 +9,13 @@ import React as React
 import React.DOM as R
 import React.DOM.Props as P
 import Carpenter (Render, Update)
-import Carpenter.Cedar (CedarClass, cedarSpec)
+import Carpenter.Cedar (CedarClass, cedarSpec')
 import Control.Apply ((*>))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Console (log, CONSOLE)
 import Control.MonadPlus (guard)
 import DOM (DOM)
+import Data.Generic (class Generic)
 import Data.Maybe (isNothing, isJust, fromMaybe, Maybe(..))
 import Data.String (null, trim)
 import Unsafe.Coerce (unsafeCoerce)
@@ -31,49 +31,53 @@ data Action
   | Check Boolean
   | Delete
 
-type Todo =
+newtype Todo = Todo
   { id :: Int
   , description :: String
   , completed :: Boolean
   , edits :: Maybe String
   }
 
+derive instance genericTodo :: Generic Todo
+
 todoComponent :: CedarClass (Maybe Todo) Action
-todoComponent = React.createClass $ cedarSpec update render
+todoComponent = React.createClass $ cedarSpec' Cancel update render
 
 init :: String -> Int -> Todo
-init description id = { id: id, description: description, completed: false, edits: Nothing }
+init description id = Todo { id: id, description: description, completed: false, edits: Nothing }
 
-update :: ∀ props eff. Update (Maybe Todo) props Action (console :: CONSOLE, dom :: DOM | eff)
+update :: ∀ props eff. Update (Maybe Todo) props Action (dom :: DOM | eff)
 update yield _ action _ state = case action of
   Focus -> do
-    yield $ map (\t -> t { edits = Just t.description })
+    yield $ map (updateTodo \t -> t { edits = Just t.description })
     case state of
-      Just todo -> do
-        liftEff $ log todo.description
+      Just (Todo todo) -> do
         liftEff $ focusTodo todo.id
       Nothing -> yield id
 
   Cancel ->
-    yield $ map (_ { edits = Nothing })
+    yield $ map (updateTodo _ { edits = Nothing })
 
   Commit -> yield $ const do
-    todo <- state
+    Todo todo <- state
     if isNothing todo.edits
-      then pure todo
+      then pure $ Todo todo
       else do
         description <- todo.edits
         guard $ not $ null (trim description)
-        pure $ todo { description = description, edits = Nothing }
+        pure $ Todo todo { description = description, edits = Nothing }
 
   Edit edit ->
-    yield $ map (_ { edits = Just edit })
+    yield $ map (updateTodo _ { edits = Just edit })
 
   Check check ->
-    yield $ map (_ { completed = check })
+    yield $ map (updateTodo _ { completed = check })
 
   Delete ->
     yield $ const Nothing
+
+  where
+    updateTodo f (Todo t) = Todo (f t)
 
 render :: ∀ props. Render (Maybe Todo) props Action
 render dispatch props state children = case state of
@@ -81,7 +85,7 @@ render dispatch props state children = case state of
   Nothing -> R.div' []
 
 renderTodo :: ∀ props. Render Todo props Action
-renderTodo dispatch _ todo _ =
+renderTodo dispatch _ (Todo todo) _ =
   R.li [ P.className classes ]
     -- todo view
     [ R.div [ P.className "view" ]

@@ -12,8 +12,8 @@ import React.DOM.Props as P
 import Carpenter (Render, Update)
 import Carpenter.Cedar (cedarSpec, CedarClass, watch')
 import Carpenter.Router (Route, match, (:->), router)
-import Components.Todo (todoComponent, Todo(Todo))
-import Components.Todo (init) as Todo
+import Components.Task (taskComponent, Task(Task))
+import Components.Task (init) as Task
 import Control.Monad.Eff.Class (liftEff)
 import Data.Array (null, filter, length, mapMaybe, (:))
 import Data.Filter (Filter(..), predicate)
@@ -24,7 +24,7 @@ import Unsafe.Coerce (unsafeCoerce)
 
 data Action
   = Insert String
-  | Update Int (Maybe Todo)
+  | Update Int (Maybe Task)
   | CheckAll Boolean
   | ClearCompleted
   | ChangeFilter Filter
@@ -33,7 +33,7 @@ data Action
 
 type TodoList =
   { field :: String
-  , tasks :: Array Todo
+  , tasks :: Array Task
   , uid :: Int
   , filter :: Filter
   }
@@ -41,7 +41,7 @@ type TodoList =
 todoListComponent :: CedarClass TodoList Action
 todoListComponent = React.createClass $ cedarSpec update render
 
-init :: Array Todo -> Int -> TodoList
+init :: Array Task -> Int -> TodoList
 init tasks uid = { field: "", tasks: tasks, uid: uid, filter: All }
 
 routes :: Route -> Filter
@@ -56,14 +56,14 @@ update yield dispatch action _ _ = case action of
   Insert description -> do
     state <- yield $ \s -> s
       { field = ""
-      , tasks = (Todo.init description s.uid) : s.tasks
+      , tasks = (Task.init description s.uid) : s.tasks
       , uid = s.uid + 1
       }
     dispatch' (Save state)
     pure state
 
   Update id taskM -> do
-    state <- yield $ \s -> s { tasks = mapMaybe (\(Todo t) -> if t.id == id then taskM else Just (Todo t)) s.tasks }
+    state <- yield $ \s -> s { tasks = mapMaybe (\(Task t) -> if t.id == id then taskM else Just (Task t)) s.tasks }
     dispatch' (Save state)
     pure state
 
@@ -73,7 +73,7 @@ update yield dispatch action _ _ = case action of
     pure state
 
   ClearCompleted -> do
-    state <- yield $ \s -> s { tasks = filter (\(Todo t) -> not t.completed) s.tasks }
+    state <- yield $ \s -> s { tasks = filter (\(Task t) -> not t.completed) s.tasks }
     dispatch' (Save state)
     pure state
 
@@ -88,7 +88,7 @@ update yield dispatch action _ _ = case action of
 
   where
     dispatch' a = liftEff $ dispatch a
-    updateTodo f (Todo t) = Todo (f t)
+    updateTodo f (Task t) = Task (f t)
 
 render :: ∀ props. Render TodoList props Action
 render dispatch props state children =
@@ -135,8 +135,8 @@ renderList dispatch _ state _ =
     , R.ul [ P.className "todo-list" ] (map todo filteredTasks)
     ]
   where
-    todo t = watch' todoComponent (dispatch <<< Update (getTodoId t)) (Just t)
-    getTodoId (Todo t) = t.id
+    todo t = watch' taskComponent (dispatch <<< Update (getTodoId t)) (Just t)
+    getTodoId (Task t) = t.id
 
     allCompleted = all (predicate Completed) state.tasks
     filteredTasks = filter (predicate state.filter) state.tasks

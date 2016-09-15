@@ -14,12 +14,8 @@
   },
   "dependencies": {
     "purescript-carpenter": "^2.0.1",
-    "purescript-strings": "^1.1.0",
-    "purescript-react-dom": "^1.0.0",
     "purescript-carpenter-router": "^0.1.3",
-    "purescript-localstorage": "^2.0.0"
-  },
-  "devDependencies": {
-    "purescript-psci-support": "^1.0.0"
+    "purescript-localstorage": "^2.0.0",
+    "purescript-strings": "^1.1.0"
   }
 }

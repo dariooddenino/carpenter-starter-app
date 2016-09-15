@@ -1,10 +1,14 @@
-module Components.Container where
+module Components.Container
+  ( containerComponent
+  , State
+  , Action
+  ) where
 
 import Prelude
 import Components.TodoList as TodoList
 import Carpenter (Render, spec', Update)
 import Carpenter.Cedar (capture')
-import Components.Todo (Todo)
+import Components.Task (Task)
 import Components.TodoList (todoListComponent)
 import Control.Monad.Eff.Class (liftEff)
 import DOM (DOM)
@@ -18,7 +22,7 @@ data Action
   | TodoListAction TodoList.Action
 
 type State =
-  { tasks :: Array Todo
+  { tasks :: Array Task
   , uid :: Int
   }
 

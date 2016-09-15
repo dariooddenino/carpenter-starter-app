@@ -1,7 +1,7 @@
-module Components.Todo
-  ( todoComponent
+module Components.Task
+  ( taskComponent
   , init
-  , Todo(..)
+  , Task(..)
   , Action
   ) where
 
@@ -21,7 +21,7 @@ import Data.String (null, trim)
 import Unsafe.Coerce (unsafeCoerce)
 import Prelude hiding (div)
 
-foreign import focusTodo :: ∀ a e. Int -> Eff (dom :: DOM | e) a
+foreign import focusTask :: ∀ a e. Int -> Eff (dom :: DOM | e) a
 
 data Action
   = Focus
@@ -31,70 +31,70 @@ data Action
   | Check Boolean
   | Delete
 
-newtype Todo = Todo
+newtype Task = Task
   { id :: Int
   , description :: String
   , completed :: Boolean
   , edits :: Maybe String
   }
 
-derive instance genericTodo :: Generic Todo
+derive instance genericTask :: Generic Task
 
-todoComponent :: CedarClass (Maybe Todo) Action
-todoComponent = React.createClass $ cedarSpec' Cancel update render
+taskComponent :: CedarClass (Maybe Task) Action
+taskComponent = React.createClass $ cedarSpec' Cancel update render
 
-init :: String -> Int -> Todo
-init description id = Todo { id: id, description: description, completed: false, edits: Nothing }
+init :: String -> Int -> Task
+init description id = Task { id: id, description: description, completed: false, edits: Nothing }
 
-update :: ∀ props eff. Update (Maybe Todo) props Action (dom :: DOM | eff)
+update :: ∀ props eff. Update (Maybe Task) props Action (dom :: DOM | eff)
 update yield _ action _ state = case action of
   Focus -> do
-    yield $ map (updateTodo \t -> t { edits = Just t.description })
+    yield $ map (updateTask \t -> t { edits = Just t.description })
     case state of
-      Just (Todo todo) -> do
-        liftEff $ focusTodo todo.id
+      Just (Task task) -> do
+        liftEff $ focusTask task.id
       Nothing -> yield id
 
   Cancel ->
-    yield $ map (updateTodo _ { edits = Nothing })
+    yield $ map (updateTask _ { edits = Nothing })
 
   Commit -> yield $ const do
-    Todo todo <- state
-    if isNothing todo.edits
-      then pure $ Todo todo
+    Task task <- state
+    if isNothing task.edits
+      then pure $ Task task
       else do
-        description <- todo.edits
+        description <- task.edits
         guard $ not $ null (trim description)
-        pure $ Todo todo { description = description, edits = Nothing }
+        pure $ Task task { description = description, edits = Nothing }
 
   Edit edit ->
-    yield $ map (updateTodo _ { edits = Just edit })
+    yield $ map (updateTask _ { edits = Just edit })
 
   Check check ->
-    yield $ map (updateTodo _ { completed = check })
+    yield $ map (updateTask _ { completed = check })
 
   Delete ->
     yield $ const Nothing
 
   where
-    updateTodo f (Todo t) = Todo (f t)
+    updateTask f (Task t) = Task (f t)
 
-render :: ∀ props. Render (Maybe Todo) props Action
+render :: ∀ props. Render (Maybe Task) props Action
 render dispatch props state children = case state of
-  Just todo -> renderTodo dispatch props todo children
+  Just task -> renderTask dispatch props task children
   Nothing -> R.div' []
 
-renderTodo :: ∀ props. Render Todo props Action
-renderTodo dispatch _ (Todo todo) _ =
+renderTask :: ∀ props. Render Task props Action
+renderTask dispatch _ (Task task) _ =
   R.li [ P.className classes ]
-    -- todo view
+    -- task view
     [ R.div [ P.className "view" ]
       -- toggle checkbox
       [ R.input
         [ P.className "toggle"
         , P._type "checkbox"
-        , P.checked $ if todo.completed then "checked" else ""
-        , P.onChange \_ -> dispatch $ Check (not todo.completed)
+        , P.checked $ if task.completed then "checked" else ""
+        , P.onChange \_ -> dispatch $ Check (not task.completed)
         ] []
       -- description
       , R.label
@@ -108,15 +108,15 @@ renderTodo dispatch _ (Todo todo) _ =
       [ P.className "edit"
       , P.value description
       , P.name "title"
-      , P._id ("todo-" <> show todo.id)
+      , P._id ("todo-" <> show task.id)
       , P.onChange \e -> dispatch $ Edit (unsafeCoerce e).target.value
       , P.onBlur \_ -> dispatch Commit
       , P.onKeyDown keyDown
       ] []
     ]
   where
-    classes = (if todo.completed then "completed " else "") <> (if isJust todo.edits then "editing" else "")
-    description = fromMaybe todo.description todo.edits
+    classes = (if task.completed then "completed " else "") <> (if isJust task.edits then "editing" else "")
+    description = fromMaybe task.description task.edits
     keyDown e
       | e.keyCode == 13 = dispatch $ Commit
       | e.keyCode == 27 = dispatch $ Cancel

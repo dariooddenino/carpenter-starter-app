@@ -7,13 +7,31 @@
 > *http://github.com/arthur-xavier/purescript-carpenter*
 
 ## Learning PureScript
-*TODO*
+- [PureScript home](http://purescript.org/)
+- [PureScript book](https://leanpub.com/purescript/read)
+- [Getting Started with PureScript](http://www.purescript.org/learn/getting-started/)
+- [Try PureScript](http://try.purescript.org/)
+- [Learning resources](http://www.purescript.org/learn/)
+- [Language guide](https://github.com/purescript/purescript/wiki/Language-Guide)
 
 ## Learning Carpenter
-*TODO*
+- [Documentation](http://pursuit.purescript.org/packages/purescript-carpenter)
+- [Examples] (https://github.com/arthur-xavier/purescript-carpenter/tree/master/examples)
+- [Documentation for purescript-react](http://pursuit.purescript.org/packages/purescript-react)
 
 ## Running
-*TODO*
+To install and run this application one must only install the dependencies and run the Webpack development server:
+
+```bash
+npm install
+npm start
+```
+
+If you want to compile the application source to distribution files in the `dist` folder, simply run:
+
+```bash
+npm run build
+```
 
 ## Credit
 This TodoMVC application was created by [@arthur-xavier](https://github.com/arthur-xavier).

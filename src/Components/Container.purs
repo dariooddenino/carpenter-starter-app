@@ -7,7 +7,7 @@ module Components.Container
 import Prelude
 import Components.TodoList as TodoList
 import Carpenter (Render, spec', Update)
-import Carpenter.Cedar (capture')
+import Carpenter.Cedar (watchAndCapture')
 import Components.Task (Task)
 import Components.TodoList (todoListComponent)
 import Components.TodoList.Storage (uidKey, tasksKey)
@@ -19,7 +19,7 @@ import React (createClass, ReactClass)
 
 data Action
   = Load
-  | TodoListAction TodoList.Action
+  | TodoListAction TodoList.Action TodoList.TodoList
 
 type State =
   { tasks :: Array Task
@@ -40,8 +40,8 @@ update yield _ action _ state = case action of
     )
     yield $ const state
 
-  TodoListAction tlaction -> case tlaction of
-    TodoList.Save todoList -> do
+  TodoListAction tlaction todoList -> case tlaction of
+    TodoList.Save -> do
       liftEff (do
         localStorage <- getLocalStorage
         setItem localStorage tasksKey todoList.tasks
@@ -52,4 +52,8 @@ update yield _ action _ state = case action of
       pure state
 
 render :: ∀ props. Render State props Action
-render dispatch _ state _ = capture' todoListComponent (dispatch <<< TodoListAction) (TodoList.init state.tasks state.uid)
+render dispatch _ state _ =
+  watchAndCapture'
+    todoListComponent
+    (\a s -> dispatch $ TodoListAction a s)
+    (TodoList.init state.tasks state.uid)

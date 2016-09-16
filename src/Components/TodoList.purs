@@ -29,7 +29,7 @@ data Action
   | ClearCompleted
   | ChangeFilter Filter
   | EditField String
-  | Save TodoList
+  | Save
 
 type TodoList =
   { field :: String
@@ -59,22 +59,22 @@ update yield dispatch action _ _ = case action of
       , tasks = (Task.init description s.uid) : s.tasks
       , uid = s.uid + 1
       }
-    dispatch' (Save state)
+    dispatch' Save
     pure state
 
   Update id taskM -> do
     state <- yield $ \s -> s { tasks = mapMaybe (\(Task t) -> if t.id == id then taskM else Just (Task t)) s.tasks }
-    dispatch' (Save state)
+    dispatch' Save
     pure state
 
   CheckAll check -> do
-    state <- yield $ \s -> s { tasks = map (updateTodo _ { completed = check }) s.tasks }
-    dispatch' (Save state)
+    state <- yield $ \s -> s { tasks = map (\(Task t) -> Task t { completed = check }) s.tasks }
+    dispatch' Save
     pure state
 
   ClearCompleted -> do
     state <- yield $ \s -> s { tasks = filter (\(Task t) -> not t.completed) s.tasks }
-    dispatch' (Save state)
+    dispatch' Save
     pure state
 
   ChangeFilter filter -> do
@@ -83,12 +83,11 @@ update yield dispatch action _ _ = case action of
   EditField field -> do
     yield $ _ { field = field }
 
-  Save _ ->
+  Save ->
     yield id
 
   where
     dispatch' a = liftEff $ dispatch a
-    updateTodo f (Task t) = Task (f t)
 
 render :: ∀ props. Render TodoList props Action
 render dispatch props state children =

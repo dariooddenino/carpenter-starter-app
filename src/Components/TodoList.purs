@@ -59,23 +59,19 @@ update yield dispatch action _ _ = case action of
       , tasks = (Task.init description s.uid) : s.tasks
       , uid = s.uid + 1
       }
-    dispatch' Save
-    pure state
+    save state
 
   Update id taskM -> do
     state <- yield $ \s -> s { tasks = mapMaybe (\(Task t) -> if t.id == id then taskM else Just (Task t)) s.tasks }
-    dispatch' Save
-    pure state
+    save state
 
   CheckAll check -> do
     state <- yield $ \s -> s { tasks = map (\(Task t) -> Task t { completed = check }) s.tasks }
-    dispatch' Save
-    pure state
+    save state
 
   ClearCompleted -> do
     state <- yield $ \s -> s { tasks = filter (\(Task t) -> not t.completed) s.tasks }
-    dispatch' Save
-    pure state
+    save state
 
   ChangeFilter filter -> do
     yield $ _ { filter = filter }
@@ -87,7 +83,7 @@ update yield dispatch action _ _ = case action of
     yield id
 
   where
-    dispatch' a = liftEff $ dispatch a
+    save state = liftEff $ dispatch Save *> pure state
 
 render :: ∀ props. Render TodoList props Action
 render dispatch props state children =

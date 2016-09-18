@@ -31,13 +31,12 @@ update yield _ action _ state = do
       uid <- liftEff $ getItem localStorage uidKey
       yield $ _ { tasks = fromMaybe [] tasks, uid = fromMaybe 0 uid }
 
-    TodoListAction tlaction todoList -> case tlaction of
-      TodoList.Save -> do
-        liftEff $ setItem localStorage tasksKey todoList.tasks
-        liftEff $ setItem localStorage uidKey todoList.uid
-        pure state
-      _ ->
-        pure state
+    TodoListAction TodoList.Save todoList -> do
+      liftEff $ setItem localStorage tasksKey todoList.tasks
+      liftEff $ setItem localStorage uidKey todoList.uid
+      pure state
+
+    TodoListAction _ _ -> pure state
 
 render :: ∀ props. Render TodoList props Action
 render dispatch _ state _ = watchAndCapture' todoListComponent (\a s -> dispatch $ TodoListAction a s) state

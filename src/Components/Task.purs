@@ -48,42 +48,44 @@ init description id = Task { id: id, description: description, completed: false,
 
 update :: ∀ props eff. Update (Maybe Task) props Action (dom :: DOM | eff)
 update _ _ _ _ Nothing = pure Nothing
-update yield _ action _ (Just (Task task)) = case action of
-  Focus -> do
-    state <- yield $ map (updateTask \t -> t { edits = Just t.description })
-    liftEff $ focusTask task.id
-    pure state
+update yield _ action _ (Just (Task task)) =
+  case action of
+    Focus -> do
+      state <- yield $ map (updateTask \t -> t { edits = Just t.description })
+      liftEff $ focusTask task.id
+      pure state
 
-  Cancel ->
-    yield $ map (updateTask _ { edits = Nothing })
+    Cancel ->
+      yield $ map (updateTask _ { edits = Nothing })
 
-  Commit -> yield $ \state -> do
-    Task task <- state
-    case task.edits of
-      Nothing ->
-        pure $ Task task
-      Just description -> do
-        guard $ not (null (trim description))
-        pure $ Task task { description = description, edits = Nothing }
+    Commit -> yield $ \state -> do
+      Task task <- state
+      case task.edits of
+        Nothing ->
+          pure $ Task task
+        Just description -> do
+          guard $ not (null (trim description))
+          pure $ Task task { description = description, edits = Nothing }
 
-  Edit edit ->
-    yield $ map (updateTask _ { edits = Just edit })
+    Edit edit ->
+      yield $ map (updateTask _ { edits = Just edit })
 
-  Check check ->
-    yield $ map (updateTask _ { completed = check })
+    Check check ->
+      yield $ map (updateTask _ { completed = check })
 
-  Delete ->
-    yield $ const Nothing
+    Delete ->
+      yield $ const Nothing
 
   where
     updateTask f (Task t) = Task (f t)
 
 render :: ∀ props. Render (Maybe Task) props Action
-render dispatch props state children = case state of
-  Just task ->
-    renderTask dispatch props task children
-  Nothing ->
-    R.div' children
+render dispatch props state children =
+  case state of
+    Just task ->
+      renderTask dispatch props task children
+    Nothing ->
+      R.div' children
 
 renderTask :: ∀ props. Render Task props Action
 renderTask dispatch _ (Task task) _ =

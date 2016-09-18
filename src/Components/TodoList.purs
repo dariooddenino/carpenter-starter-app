@@ -52,35 +52,36 @@ routes = match
   ] All
 
 update :: ∀ props eff. Update TodoList props Action eff
-update yield dispatch action _ _ = case action of
-  Insert description -> do
-    state <- yield $ \s -> s
-      { field = ""
-      , tasks = (Task.init description s.uid) : s.tasks
-      , uid = s.uid + 1
-      }
-    save state
+update yield dispatch action _ _ =
+  case action of
+    Insert description -> do
+      state <- yield $ \s -> s
+        { field = ""
+        , tasks = (Task.init description s.uid) : s.tasks
+        , uid = s.uid + 1
+        }
+      save state
 
-  Update id taskM -> do
-    state <- yield $ \s -> s { tasks = mapMaybe (\(Task t) -> if t.id == id then taskM else Just (Task t)) s.tasks }
-    save state
+    Update id taskM -> do
+      state <- yield $ \s -> s { tasks = mapMaybe (\(Task t) -> if t.id == id then taskM else Just (Task t)) s.tasks }
+      save state
 
-  CheckAll check -> do
-    state <- yield $ \s -> s { tasks = map (\(Task t) -> Task t { completed = check }) s.tasks }
-    save state
+    CheckAll check -> do
+      state <- yield $ \s -> s { tasks = map (\(Task t) -> Task t { completed = check }) s.tasks }
+      save state
 
-  ClearCompleted -> do
-    state <- yield $ \s -> s { tasks = filter (\(Task t) -> not t.completed) s.tasks }
-    save state
+    ClearCompleted -> do
+      state <- yield $ \s -> s { tasks = filter (\(Task t) -> not t.completed) s.tasks }
+      save state
 
-  ChangeFilter filter -> do
-    yield $ _ { filter = filter }
+    ChangeFilter filter -> do
+      yield $ _ { filter = filter }
 
-  EditField field -> do
-    yield $ _ { field = field }
+    EditField field -> do
+      yield $ _ { field = field }
 
-  Save ->
-    yield id
+    Save ->
+      yield id
 
   where
     save state = liftEff $ dispatch Save *> pure state

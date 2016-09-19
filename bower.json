@@ -13,7 +13,7 @@
     "url": "git://github.com/arthur-xavier/purescript-carpenter-todomvc.git"
   },
   "dependencies": {
-    "purescript-carpenter": "^2.0.1",
+    "purescript-carpenter": "^2.2.0",
     "purescript-carpenter-router": "^1.0.0",
     "purescript-localstorage": "^2.0.0",
     "purescript-strings": "^1.1.0"
@@ -21,5 +21,8 @@
   "resolutions": {
     "purescript-dom": "^2.0.0",
     "purescript-js-date": "^2.0.0"
+  },
+  "devDependencies": {
+    "purescript-test-unit": "^9.1.0"
   }
 }

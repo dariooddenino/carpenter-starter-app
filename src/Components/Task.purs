@@ -1,8 +1,9 @@
 module Components.Task
   ( taskComponent
   , init
+  , update
   , Task(..)
-  , Action
+  , Action(..)
   ) where
 
 import React as React
@@ -15,7 +16,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.MonadPlus (guard)
 import DOM (DOM)
-import Data.Generic (class Generic)
+import Data.Generic (gShow, class Generic)
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.String (null, trim)
 import Unsafe.Coerce (unsafeCoerce)
@@ -38,7 +39,10 @@ newtype Task = Task
   , edits :: Maybe String
   }
 
+derive instance eqTask :: Eq Task
 derive instance genericTask :: Generic Task
+instance showTask :: Show Task
+  where show = gShow
 
 taskComponent :: CedarClass (Maybe Task) Action
 taskComponent = React.createClass $ cedarSpec' Cancel update render

@@ -4,6 +4,7 @@ import Prelude
 import Components.Task as Task
 import Test.Unit.Assert as Assert
 import Carpenter.Cedar (mockUpdate)
+import Components.Task (Task(Task))
 import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE)
@@ -19,13 +20,19 @@ testTask = unsafePartial $ runTest do
 
   suite "Task" do
 
-    test "should change content after commiting edits" do
+    test "should set edits to description on focus" do
+      let t = Just (Task.init "Lorem" 1)
+          expected = updateTask (_ { edits = Just "Lorem" }) t
+      t' <- update Task.Focus t
+      Assert.equal expected t'
+
+    test "should change description after commiting edits" do
       let t = Just (Task.init "Lorem" 1)
           expected = Just (Task.init "Ipsum" 1)
       t' <- update (Task.Edit "Ipsum") t >>= update Task.Commit
       Assert.equal expected t'
 
-    test "should change content after commiting edits" do
+    test "should change description after commiting edits" do
       let t = Just (Task.init "Lorem" 1)
           expected = t
       t' <- update (Task.Edit "Ipsum") t >>= update Task.Cancel
@@ -51,3 +58,4 @@ testTask = unsafePartial $ runTest do
 
   where
     update = mockUpdate Task.update
+    updateTask f = map \(Task t) -> Task (f t)

@@ -1,6 +1,7 @@
 module Components.TodoList
   ( todoListComponent
   , init
+  , update
   , TodoList
   , Action(..)
   ) where

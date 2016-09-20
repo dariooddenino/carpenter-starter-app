@@ -10,13 +10,12 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE)
 import DOM (DOM)
 import Data.Maybe (Maybe(..))
-import Partial.Unsafe (unsafePartial)
 import Test.Unit (test, suite)
 import Test.Unit.Console (TESTOUTPUT)
 import Test.Unit.Main (runTest)
 
 testTask :: ∀ eff. Eff (testOutput :: TESTOUTPUT, dom :: DOM, console :: CONSOLE, avar :: AVAR | eff) Unit
-testTask = unsafePartial $ runTest do
+testTask = runTest do
 
   suite "Task" do
 

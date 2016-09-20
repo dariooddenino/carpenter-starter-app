@@ -6,6 +6,8 @@
 >
 > *http://github.com/arthur-xavier/purescript-carpenter*
 
+[Working demo](http://arthur-xavier.github.io/purescript-carpenter-todomvc
+
 ## Learning PureScript
 - [PureScript home](http://purescript.org/)
 - [PureScript book](https://leanpub.com/purescript/read)

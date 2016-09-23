@@ -14,9 +14,7 @@
   },
   "dependencies": {
     "purescript-carpenter": "^2.2.0",
-    "purescript-carpenter-router": "^1.0.0",
-    "purescript-localstorage": "^2.0.0",
-    "purescript-strings": "^1.1.0"
+    "purescript-carpenter-router": "^1.0.0"
   },
   "resolutions": {
     "purescript-dom": "^2.0.0",

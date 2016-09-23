@@ -1,11 +1,10 @@
 {
   "private": true,
-  "name": "purescript-carpenter-todomvc",
-  "author": "Arthur Xavier <arthur.xavierx@gmail.com> (http://arthur-xavier.github.io/)",
+  "name": "carpenter-starter-app",
+  "author": "Dario Oddenino",
   "scripts": {
     "build": "npm run clean && set NODE_ENV=production && ./node_modules/.bin/webpack --config ./webpack.production.config.js --progress --profile --colors",
     "clean": "rimraf dist && rimraf output",
-    "deploy": "gh-pages -d dist",
     "postinstall": "./node_modules/.bin/bower cache clean && ./node_modules/.bin/bower install",
     "serve:watch": "node ./webpack.config.js",
     "serve:prod": "http-server ./dist/ --cors -p 3000",
@@ -13,15 +12,9 @@
     "test": "pulp test"
   },
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/arthur-xavier/purescript-carpenter-todomvc.git"
-  },
   "dependencies": {
     "react": "^0.14.7",
-    "react-dom": "^0.14.7",
-    "todomvc-app-css": "^2.0.0",
-    "todomvc-common": "^1.0.0"
+    "react-dom": "^0.14.7"
   },
   "devDependencies": {
     "bower": "^1.7.9",
@@ -30,7 +23,6 @@
     "css-loader": "^0.25.0",
     "express": "^4.13.4",
     "extract-text-webpack-plugin": "^1.0.1",
-    "gh-pages": "^0.11.0",
     "html-webpack-plugin": "^2.15.0",
     "http-server": "^0.9.0",
     "pulp": "^9.0.1",

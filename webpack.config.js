@@ -22,15 +22,12 @@ var config = {
       {
         test: /\.js$/,
         loader: 'source-map-loader',
-        include: [ path.resolve(__dirname, 'node_modules/todomvc-common') ]
+        include: []
       },
       {
         test: /\.css/,
         loader: ExtractTextPlugin.extract('style-loader', 'css-loader'),
-        include: [
-          path.resolve(__dirname, 'node_modules/todomvc-common'),
-          path.resolve(__dirname, 'node_modules/todomvc-app-css')
-        ]
+        include: []
       },
       {
         test: /\.purs$/,
@@ -88,8 +85,6 @@ if (require.main === module) {
   // webpack-dev-server, because webpack-hot-middleware provides more reliable
   // HMR behavior, and an in-browser overlay that displays build errors
   app
-    .use('/node_modules/todomvc-common', express.static('./node_modules/todomvc-common/'))
-    .use('/node_modules/todomvc-app-css', express.static('./node_modules/todomvc-app-css/'))
     .use(require('connect-history-api-fallback')())
     .use(require('webpack-dev-middleware')(compiler, {
       publicPath: config.output.publicPath,

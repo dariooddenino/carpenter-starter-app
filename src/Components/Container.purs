@@ -1,42 +1,28 @@
-module Components.Container
-  ( containerComponent
-  , Action
-  ) where
+module Components.Container where
 
 import Prelude
-import Components.TodoList as TodoList
-import Carpenter (Render, spec', Update)
-import Carpenter.Cedar (watchAndCapture')
-import Components.TodoList (todoListComponent, TodoList)
-import Control.Monad.Eff.Class (liftEff)
-import DOM (DOM)
-import DOM.WebStorage (setItem, getItem, getLocalStorage, STORAGE)
-import Data.StorageKey (uidKey, tasksKey)
-import Data.Maybe (fromMaybe)
+import Carpenter (spec, Render, Update)
 import React (createClass, ReactClass)
+import React.DOM (text, button, h1', div')
+import React.DOM.Props (onClick)
 
-data Action
-  = Load
-  | TodoListAction TodoList.Action TodoList.TodoList
+type State = Int
 
-containerComponent :: ∀ props. ReactClass props
-containerComponent = createClass $ spec' (TodoList.init [] 0) Load update render
+data Action = Increment | Decrement
 
-update :: ∀ props eff. Update TodoList props Action (dom :: DOM, storage :: STORAGE | eff)
-update yield _ action _ state = do
-  localStorage <- liftEff $ getLocalStorage
+containerComponent :: forall props. ReactClass props
+containerComponent = createClass $ spec 0 update render
+
+update :: forall props eff. Update State props Action eff
+update yield _ action _ _ =
   case action of
-    Load -> do
-      tasks <- liftEff $ getItem localStorage tasksKey
-      uid <- liftEff $ getItem localStorage uidKey
-      yield $ _ { tasks = fromMaybe [] tasks, uid = fromMaybe 0 uid }
+    Increment -> yield (_ + 1)
+    Decrement -> yield (_ - 1)
 
-    TodoListAction TodoList.Save todoList -> do
-      liftEff $ setItem localStorage tasksKey todoList.tasks
-      liftEff $ setItem localStorage uidKey todoList.uid
-      pure state
-
-    TodoListAction _ _ -> pure state
-
-render :: ∀ props. Render TodoList props Action
-render dispatch _ state _ = watchAndCapture' todoListComponent (\a s -> dispatch $ TodoListAction a s) state
+render :: forall props. Render State props Action
+render dispatch _ state _ =
+  div'
+    [ h1' [ text (show state) ]
+    , button [ onClick \_ -> dispatch Increment ] [ text "+" ]
+    , button [ onClick \_ -> dispatch Decrement ] [ text "-" ]
+    ]

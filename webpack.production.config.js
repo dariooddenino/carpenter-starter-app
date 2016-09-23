@@ -9,22 +9,19 @@ module.exports = {
   output: {
     path: path.resolve('./dist'),
     filename: '[name]-[hash].min.js',
-    publicPath: '/purescript-carpenter-todomvc/'
+    publicPath: '/'
   },
   module: {
     loaders: [
       {
         test: /\.js$/,
         loader: 'source-map-loader',
-        include: [ path.resolve(__dirname, 'node_modules/todomvc-common') ]
+        include: [ ]
       },
       {
         test: /\.css/,
         loader: ExtractTextPlugin.extract('style-loader', 'css-loader'),
-        include: [
-          path.resolve(__dirname, 'node_modules/todomvc-common'),
-          path.resolve(__dirname, 'node_modules/todomvc-app-css')
-        ]
+        include: [ ]
       },
       {
         test: /\.purs$/,

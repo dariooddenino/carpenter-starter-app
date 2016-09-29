@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "purescript-carpenter": "^2.2.0",
-    "purescript-carpenter-router": "^1.0.0"
+    "purescript-react-router": "^0.1.0"
   },
   "resolutions": {
     "purescript-dom": "^2.0.0",
